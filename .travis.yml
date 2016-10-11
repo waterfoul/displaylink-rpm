@@ -1,0 +1,33 @@
+sudo: required
+env:
+  matrix:
+  - OS_TYPE=fedora OS_VERSION=24
+  - OS_TYPE=centos OS_VERSION=7
+services:
+- docker
+before_install:
+- echo 'DOCKER_OPTS="-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock -s devicemapper"'
+  | sudo tee /etc/default/docker > /dev/null
+- sudo service docker restart
+- sleep 5
+- sudo docker pull ${OS_TYPE}:${OS_VERSION}
+script:
+- sudo docker run --rm=true -v `pwd`:/base-src:rw -t ${OS_TYPE}:${OS_VERSION} /bin/bash
+  -c /base-src/ci/${OS_TYPE}.sh
+- sudo mv displaylink-1.2.64-1.src.rpm ${OS_TYPE}-${OS_VERSION}-displaylink-1.2.64-1.src.rpm
+- sudo mv x86_64/displaylink-1.2.64-1.x86_64.rpm ${OS_TYPE}-${OS_VERSION}-displaylink-1.2.64-1.x86_64.rpm
+- sudo mv i386/displaylink-1.2.64-1.i386.rpm ${OS_TYPE}-${OS_VERSION}-displaylink-1.2.64-1.i386.rpm
+deploy:
+  provider: releases
+  skip_cleanup: true
+  on:
+    tags: true
+  api_key:
+    secure: Ht8Idhecp6qn/VAHI8Iajj+ip0l8jkKZ7CB4dCn2iVI0/IcosWVAOkhabsCdEib837cEVz1IBCFMrpaWapbZ4o3qEWXCUrRTiUeSO7fwVxv0xeE3i8a7o+sv0b/B7tCOaEKXf+n6GDV/GnnThjg1SWyo4u/bTThk1bXqjvzyzfSaUVJLVoU5nCoeHmc0Sb14I6YdudmU6xi/XT6Xxvd3QyfbxJrGo4MCF9lKJTwbxtoXIO/AjWNH9DHDoZkJZ0j+6NoNzhvqLj31CEjIkC1bENtYxpcJkqCeZHG12dxQT0+A0nL9SfCEZG/rCTEmaMZet5cOs++iHg3yEgLAS9MOGtMSANhoHlREE777Lr9JrglV7aEHMuz2icvm7YGB7jP6DYvLLceO9iL8GV8089hEqIKm2ITTrsNBJlgs7/TIQBBx56aFquQ8mpNY64CLhb8w2f1kbL2G4K7WMikvivif0DN036PGvsFOsRCu+YUWNfleLJ5uDhuPpWyY/YuJHegm7fRkaze1Uo02p06GUHWkHJJyzXm7Yply73jfSKKPCFJ33C4+L3frE5hRUMfwLqMgDC7INXbMtjR24RCrloywz8qlq25XJlo8gX3DHRBk3+nrCg++U0x9eeqE2p2e1prb0wVLbFSRz/Le8Ywxok+STqS/KbdKiCZTjj3VM1xmmV4=
+  file: 
+    - fedora-24-displaylink-1.2.64-1.src.rpm
+    - fedora-24-displaylink-1.2.64-1.x86_64.rpm
+    - fedora-24-displaylink-1.2.64-1.i386.rpm
+    - centos-7-displaylink-1.2.64-1.src.rpm
+    - centos-7-displaylink-1.2.64-1.x86_64.rpm
+    - centos-7-displaylink-1.2.64-1.i386.rpm
